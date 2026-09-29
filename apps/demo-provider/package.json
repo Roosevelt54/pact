@@ -1,0 +1,9 @@
+{
+  "name": "@pact/demo-provider",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Controllable demo provider for the PACT Chaos Lab (synthetic data, armable misbehaviour).",
+  "type": "module",
+  "exports": { ".": "./src/demoProvider.ts" },
+  "dependencies": { "@pact/core": "0.1.0", "@pact/tempo": "0.1.0", "hono": "^4.13.10", "viem": "^2.56.9" }
+}

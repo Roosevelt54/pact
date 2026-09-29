@@ -1,0 +1,10 @@
+{
+  "name": "@pact/verifier",
+  "version": "0.1.0",
+  "description": "Deterministic verification policies for paid machine work. The verdict decides what gets captured.",
+  "type": "module",
+  "license": "MIT",
+  "exports": { ".": "./src/index.ts" },
+  "files": ["src"],
+  "dependencies": { "@pact/core": "0.1.0" }
+}

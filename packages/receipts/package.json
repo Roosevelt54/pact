@@ -1,0 +1,10 @@
+{
+  "name": "@pact/receipts",
+  "version": "0.1.0",
+  "description": "PACT Work Receipts: canonical, digest-sealed, operator-signed proof binding request, payment, result, verdict and settlement.",
+  "type": "module",
+  "license": "MIT",
+  "exports": { ".": "./src/index.ts" },
+  "files": ["src"],
+  "dependencies": { "@pact/core": "0.1.0", "@pact/verifier": "0.1.0", "viem": "^2.56.9" }
+}

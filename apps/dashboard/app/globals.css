@@ -1,0 +1,273 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+/*
+ * PACT visual system: an instrumented settlement ledger.
+ * One semantic accent per lifecycle meaning, never decorative:
+ *   escrow  = money authorized & locked      prove  = work in flight / checking
+ *   settle  = verified & captured            protect = refunded to the agent
+ *   fail    = a check or transport failure
+ */
+:root {
+  --bg: #f2efe7;
+  --surface: #fffdf8;
+  --surface-2: #f7f4ec;
+  --line: #e1dccf;
+  --line-strong: #cbc4b3;
+  --text: #16181b;
+  --muted: #62666d;
+  --faint: #9a9ca0;
+  --escrow: #a8650f;
+  --prove: #0b6f86;
+  --settle: #13783d;
+  --protect: #5b3fe0;
+  --fail: #c03a1c;
+  --grid: rgba(22, 24, 27, 0.045);
+  --glow: rgba(168, 101, 15, 0.06);
+}
+
+[data-theme='dark'] {
+  --bg: #0a0b0d;
+  --surface: #101216;
+  --surface-2: #15181e;
+  --line: #22262d;
+  --line-strong: #30353e;
+  --text: #ece9e2;
+  --muted: #8d919a;
+  --faint: #5b6069;
+  --escrow: #e9b14c;
+  --prove: #5cc8e0;
+  --settle: #4fd18b;
+  --protect: #a193ff;
+  --fail: #f2654f;
+  --grid: rgba(236, 233, 226, 0.035);
+  --glow: rgba(233, 177, 76, 0.05);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--text);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-escrow: var(--escrow);
+  --color-prove: var(--prove);
+  --color-settle: var(--settle);
+  --color-protect: var(--protect);
+  --color-fail: var(--fail);
+  --font-sans: var(--font-plex), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+  --font-serif: var(--font-instrument), ui-serif, Georgia, serif;
+}
+
+html {
+  color-scheme: light;
+}
+html[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(1200px 600px at 85% -10%, var(--glow), transparent 60%),
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: auto, 32px 32px, 32px 32px;
+  background-attachment: fixed;
+  color: var(--text);
+  font-feature-settings: 'ss01', 'tnum';
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--escrow) 35%, transparent);
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+.hatch {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    color-mix(in oklab, var(--escrow) 40%, transparent) 0 6px,
+    color-mix(in oklab, var(--escrow) 18%, transparent) 6px 12px
+  );
+  background-size: 17px 17px;
+  animation: hatch-move 1.2s linear infinite;
+}
+
+@keyframes hatch-move {
+  to {
+    background-position: 17px 0;
+  }
+}
+
+@keyframes node-pop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.4;
+  }
+  60% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes ring {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, currentColor 45%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 10px transparent;
+  }
+}
+
+@keyframes fill-x {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.anim-pop {
+  animation: node-pop 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.anim-ring {
+  animation: ring 1.4s ease-out infinite;
+}
+.anim-fill {
+  transform-origin: left;
+  animation: fill-x 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.anim-in {
+  animation: fade-up 360ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-pop,
+  .anim-ring,
+  .anim-fill,
+  .anim-in,
+  .hatch {
+    animation: none !important;
+  }
+}
+
+/* Markdown documentation */
+.prose-pact {
+  line-height: 1.7;
+  font-size: 15px;
+  color: var(--text);
+}
+.prose-pact h1 {
+  font-family: var(--font-serif);
+  font-size: 2.6rem;
+  line-height: 1.1;
+  margin: 0 0 1rem;
+}
+.prose-pact h2 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin: 2.4rem 0 0.8rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--line);
+}
+.prose-pact h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 1.6rem 0 0.5rem;
+}
+.prose-pact p,
+.prose-pact ul,
+.prose-pact ol {
+  margin: 0.7rem 0;
+  color: color-mix(in oklab, var(--text) 88%, var(--muted));
+}
+.prose-pact ul {
+  list-style: disc;
+  padding-left: 1.25rem;
+}
+.prose-pact ol {
+  list-style: decimal;
+  padding-left: 1.25rem;
+}
+.prose-pact a {
+  color: var(--prove);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.prose-pact code {
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0.05em 0.35em;
+}
+.prose-pact pre {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.6;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px 16px;
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+.prose-pact pre code {
+  background: none;
+  border: 0;
+  padding: 0;
+  font-size: inherit;
+}
+.prose-pact table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+  margin: 1rem 0;
+  display: block;
+  overflow-x: auto;
+}
+.prose-pact th,
+.prose-pact td {
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  padding: 8px 10px;
+  vertical-align: top;
+}
+.prose-pact th {
+  font-weight: 600;
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.prose-pact blockquote {
+  border-left: 2px solid var(--escrow);
+  padding-left: 1rem;
+  color: var(--muted);
+  margin: 1rem 0;
+}

@@ -1,0 +1,9 @@
+{
+  "name": "@pact/example-research-agent",
+  "version": "0.1.0",
+  "private": true,
+  "description": "An agent that buys verified research through PACT on Tempo.",
+  "type": "module",
+  "scripts": { "start": "tsx src/index.ts" },
+  "dependencies": { "@pact/tempo": "0.1.0", "viem": "^2.56.9" }
+}

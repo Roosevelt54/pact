@@ -1,0 +1,47 @@
+{
+  "name": "pact",
+  "version": "0.1.0",
+  "private": true,
+  "description": "PACT — Proof-Assured Commerce on Tempo. Payment assurance for autonomous agents: PAY → PROVE → SETTLE.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*",
+    "examples/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -k -n gateway,web -c yellow,cyan \"npm:dev:api\" \"npm:dev:web\"",
+    "dev:api": "tsx watch --clear-screen=false apps/gateway/src/main.ts",
+    "dev:web": "npm run dev -w @pact/dashboard",
+    "build:web": "npm run build -w @pact/dashboard",
+    "start": "concurrently -k -n gateway,web \"npm:start:api\" \"npm:start:web\"",
+    "start:api": "tsx apps/gateway/src/main.ts",
+    "start:web": "npm run start -w @pact/dashboard",
+    "mcp": "tsx packages/mcp/src/bin.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit && npm run typecheck -w @pact/dashboard",
+    "lint": "tsc -p tsconfig.json --noEmit --noUnusedLocals --noUnusedParameters",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:live": "cross-env PACT_TEMPO_LIVE=1 vitest run test/tempo.live.test.ts",
+    "tempo:setup": "tsx scripts/tempo-setup.ts",
+    "tempo:smoke": "tsx scripts/tempo-smoke.ts"
+  },
+  "dependencies": {
+    "@hono/node-server": "^2.1.1",
+    "hono": "^4.13.10",
+    "mppx": "^0.11.0",
+    "viem": "^2.56.9",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.3",
+    "concurrently": "^10.0.5",
+    "cross-env": "^10.1.0",
+    "tsx": "^4.23.15",
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.2"
+  }
+}

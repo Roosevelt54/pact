@@ -1,0 +1,10 @@
+{
+  "name": "@pact/example-basic-api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Protect an API with PACT: verified results get paid, everything else is refunded.",
+  "type": "module",
+  "exports": { ".": "./src/fxProvider.ts" },
+  "scripts": { "start": "tsx src/index.ts" },
+  "dependencies": { "@hono/node-server": "^2.1.1", "@pact/tempo": "0.1.0", "@pact/verifier": "0.1.0", "hono": "^4.13.10", "viem": "^2.56.9" }
+}

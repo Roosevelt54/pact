@@ -1,0 +1,9 @@
+{
+  "name": "@pact/core",
+  "version": "0.1.0",
+  "description": "PACT core primitives: TIP-20 amounts, canonical digests and the pact state machine.",
+  "type": "module",
+  "license": "MIT",
+  "exports": { ".": "./src/index.ts" },
+  "files": ["src"]
+}

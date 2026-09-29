@@ -1,0 +1,18 @@
+{
+  "name": "@pact/tempo",
+  "version": "0.1.0",
+  "description": "PACT on Tempo: payment assurance for autonomous agents. PactClient for agents, pactProvider for APIs, TIP-1034 escrow rail for gateways.",
+  "type": "module",
+  "license": "MIT",
+  "keywords": ["tempo", "mpp", "machine-payments", "agents", "escrow", "tip-1034"],
+  "exports": { ".": "./src/index.ts" },
+  "files": ["src"],
+  "dependencies": {
+    "@pact/core": "0.1.0",
+    "@pact/receipts": "0.1.0",
+    "@pact/verifier": "0.1.0",
+    "mppx": "^0.11.0",
+    "viem": "^2.56.9",
+    "zod": "^4.6.5"
+  }
+}
