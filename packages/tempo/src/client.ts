@@ -27,7 +27,7 @@ import {
 } from './gateway.js'
 import { buildCredentialHeader, type SessionChallengeRequest } from './mpp.js'
 import { TempoPayer } from './rails/tempo.js'
-import type { PayerWallet } from './rails/types.js'
+import type { OpenCredentialPayload, PayerWallet } from './rails/types.js'
 
 export * from './gateway.js'
 
@@ -93,7 +93,10 @@ export class PactClient {
    * pact-bound TIP-1034 channel and signs a voucher for exactly the price.
    * Returns both the MPP credential object (for MCP `_meta`) and header form (HTTP).
    */
-  async createCredential(challenge: PactChallenge, maxAmount: string) {
+  async createCredential(
+    challenge: PactChallenge,
+    maxAmount: string,
+  ): Promise<{ pactId: string; payload: OpenCredentialPayload; credential: Credential.Credential; header: string }> {
     const request = challenge.request as unknown as SessionChallengeRequest
     if (challenge.method !== 'tempo' || challenge.intent !== 'session')
       throw new PactClientError('unsupported_challenge', `${challenge.method}/${challenge.intent}`)

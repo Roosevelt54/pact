@@ -15,7 +15,12 @@ import {
   walletActions,
   type Account,
   type Address,
+  type Chain as ViemChain,
+  type Client,
   type Hex,
+  type PublicActions,
+  type Transport,
+  type WalletActions,
 } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 import { tempoModerato } from 'viem/chains'
@@ -27,20 +32,23 @@ export const ESCROW: Address = Constants.tip20ChannelEscrow as Address
 
 export type ChannelDescriptor = Session.Precompile.Channel.ChannelDescriptor
 
+/** Public + wallet viem client for Tempo, typed with viem's public types so it is portable in .d.ts. */
+export type TempoClient = Client<Transport, ViemChain> & PublicActions<Transport, ViemChain> & WalletActions<ViemChain>
+
 export type TempoContext = {
   chainId: number
   explorerUrl: string
   token: Address
-  client: ReturnType<typeof makeClient>
+  client: TempoClient
 }
 
-function makeClient(rpcUrl: string, token: Address) {
+function makeClient(rpcUrl: string, token: Address): TempoClient {
   return createClient({
     chain: tempoModerato.extend({ feeToken: token }),
     transport: http(rpcUrl, { retryCount: 3, timeout: 20_000 }),
   })
     .extend(publicActions)
-    .extend(walletActions)
+    .extend(walletActions) as unknown as TempoClient
 }
 
 export function createTempoContext(rpcUrl: string, token: Address): TempoContext {

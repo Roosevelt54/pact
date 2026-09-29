@@ -1,5 +1,6 @@
+#!/usr/bin/env node
 /**
- * stdio entry point: `npx tsx packages/mcp/src/bin.ts`
+ * stdio entry point: `npx pact-mcp` (published) or `npx tsx packages/mcp/src/bin.ts` (this repo)
  *
  *   PACT_GATEWAY_URL      gateway base URL (default http://localhost:8787)
  *   PACT_AGENT_ID         agent id used for pacts created through this server

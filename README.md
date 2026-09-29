@@ -82,6 +82,7 @@ docs/                           developer documentation (also rendered at /docs)
 | [Run locally](docs/run-locally.md) · [Tempo testnet](docs/tempo-testnet.md) · [Gateway API](docs/api-reference.md) | operations and reference |
 | [Architecture & findings](docs/ARCHITECTURE.md) | what was verified in the Tempo / mppx source, and the design decision |
 | [60-second demo](docs/DEMO.md) | the judge walkthrough |
+| [Publish the SDK to npm](docs/publish-sdk.md) | `npm run release:pack` / `release:publish`, step by step |
 
 ## Checks
 

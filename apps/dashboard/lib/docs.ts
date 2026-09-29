@@ -10,6 +10,8 @@ export const DOCS: Doc[] = [
   { slug: 'overview', file: 'overview.md', title: 'What PACT solves', summary: 'Payment success is not work success.', group: 'Start' },
   { slug: 'run-locally', file: 'run-locally.md', title: 'Run PACT locally', summary: 'Gateway, Control Center and tests in minutes.', group: 'Start' },
   { slug: 'tempo-testnet', file: 'tempo-testnet.md', title: 'Use Tempo testnet', summary: 'Fund keys and settle on Moderato.', group: 'Start' },
+  { slug: 'demo', file: 'DEMO.md', title: '60-second demo', summary: 'The judge walkthrough, step by step.', group: 'Start' },
+  { slug: 'publish-sdk', file: 'publish-sdk.md', title: 'Publish the SDK to npm', summary: 'Build, verify and publish the packages.', group: 'Reference' },
   { slug: 'how-it-works', file: 'how-it-works.md', title: 'Payment ↔ work correlation', summary: 'How a payment is bound to one request.', group: 'Concepts' },
   { slug: 'verification-policies', file: 'verification-policies.md', title: 'Verification policies', summary: 'Deterministic checks that decide capture.', group: 'Concepts' },
   { slug: 'work-receipts', file: 'work-receipts.md', title: 'Work Receipts', summary: 'Portable, signed proof of paid work.', group: 'Concepts' },

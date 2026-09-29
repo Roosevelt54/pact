@@ -26,6 +26,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:live": "cross-env PACT_TEMPO_LIVE=1 vitest run test/tempo.live.test.ts",
+    "release:pack": "tsx scripts/release.ts",
+    "release:publish": "tsx scripts/release.ts --publish",
     "tempo:setup": "tsx scripts/tempo-setup.ts",
     "tempo:smoke": "tsx scripts/tempo-smoke.ts"
   },
