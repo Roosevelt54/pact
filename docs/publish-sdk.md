@@ -65,8 +65,26 @@ every internal import to match:
 npm run release:publish -- --scope=@pactpay
 ```
 
-npm will ask for your two-factor code. After a minute the packages appear at
-`https://www.npmjs.com/package/@pact/tempo` (or your scope).
+Pass the current 6-digit code from your authenticator app with `--otp` (it expires after ~30 seconds,
+so run the command right after reading it):
+
+```bash
+npm run release:publish -- --scope=@pactpay --otp=123456
+```
+
+After a minute the packages appear at `https://www.npmjs.com/package/@pact/tempo` (or your scope).
+If a run stops partway, just run it again with a fresh code: packages already on npm are skipped.
+
+### If you get `E403 … Two-factor authentication … is required to publish`
+
+npm only lets accounts with 2FA publish. Nothing was uploaded. Fix it once:
+
+1. <https://www.npmjs.com> → your avatar → **Account** → **Two-Factor Authentication** → enable it
+   for **Authorization and writes** (use an authenticator app such as Google Authenticator or Authy).
+2. Run `npm login` again in the terminal.
+3. Re-run the publish command above with `--otp=<code>`.
+
+Also run the command from the repo folder (`cd pact`), otherwise npm reports `Missing script`.
 
 ## 4. Update the docs
 

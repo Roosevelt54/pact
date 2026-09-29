@@ -25,13 +25,27 @@ const flag = (name: string) => process.argv.includes(`--${name}`)
 const scope = arg('scope') ?? '@pact'
 const versionOverride = arg('version')
 const publish = flag('publish')
+const otp = arg('otp')
 if (!/^@[a-z0-9][a-z0-9-._]*$/.test(scope)) throw new Error(`invalid scope "${scope}"`)
+if (otp && !/^\d{6,8}$/.test(otp)) throw new Error('invalid --otp (expected the 6-digit code from your authenticator)')
 if (versionOverride && !/^\d+\.\d+\.\d+(-[\w.]+)?$/.test(versionOverride)) throw new Error(`invalid version "${versionOverride}"`)
 
 const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm'
 // npm is a .cmd shim on Windows and needs a shell; node does not (and a shell would split "Program Files").
 const run = (cmd: string, args: string[], cwd = ROOT) =>
   execFileSync(cmd, args, { cwd, stdio: 'inherit', shell: cmd === npm && process.platform === 'win32' })
+
+// Lets a failed publish be re-run: packages that already went up are skipped.
+function isPublished(name: string, version: string) {
+  try {
+    execFileSync(npm, ['view', `${name}@${version}`, 'version'], { stdio: 'pipe', shell: process.platform === 'win32' })
+      .toString()
+      .trim()
+    return true
+  } catch {
+    return false
+  }
+}
 
 type Manifest = {
   name: string
@@ -134,8 +148,9 @@ for (const pkg of ORDER) {
     copyFileSync(from, join(stage, f))
   }
 
-  if (publish) run(npm, ['publish', '--access', 'public'], stage)
-  else run(npm, ['pack', '--pack-destination', join(OUT, 'tarballs')], stage)
+  if (!publish) run(npm, ['pack', '--pack-destination', join(OUT, 'tarballs')], stage)
+  else if (isPublished(published.name, published.version)) console.log(`  ${published.name}@${published.version} already on npm, skipping`)
+  else run(npm, ['publish', '--access', 'public', ...(otp ? [`--otp=${otp}`] : [])], stage)
 }
 
 console.log(
