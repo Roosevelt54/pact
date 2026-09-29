@@ -1,6 +1,6 @@
 # Paid MCP tools
 
-`@pact/mcp` exposes a gateway's services as MCP tools whose calls go through PAY → PROVE → SETTLE.
+`@pactpayment/mcp` exposes a gateway's services as MCP tools whose calls go through PAY → PROVE → SETTLE.
 The wire format is **MPP-over-MCP exactly as mppx defines it** (`Mcp` in mppx):
 
 | Step | Wire |
@@ -16,7 +16,7 @@ with "Nothing was paid" and the refund amount.
 ## Server
 
 ```ts
-import { createPactMcpServer } from '@pact/mcp'
+import { createPactMcpServer } from '@pactpayment/mcp'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 
 const { server, tools } = await createPactMcpServer({ gateway: 'https://pact.example.com' })
@@ -34,7 +34,7 @@ PACT_GATEWAY_URL=http://localhost:8787 npx tsx packages/mcp/src/bin.ts
 
 ```ts
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
-import { withPact } from '@pact/mcp'
+import { withPact } from '@pactpayment/mcp'
 
 const client = new Client({ name: 'my-agent', version: '1.0.0' })
 await client.connect(transport)

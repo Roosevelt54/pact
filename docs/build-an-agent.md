@@ -1,7 +1,7 @@
 # Build a paying agent
 
 ```ts
-import { PactClient } from '@pact/tempo'
+import { PactClient } from '@pactpayment/tempo'
 
 const pact = PactClient.tempo({
   gateway: 'https://pact.example.com',

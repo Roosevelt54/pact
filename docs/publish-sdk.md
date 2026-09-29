@@ -1,5 +1,8 @@
 # Publish the SDK to npm
 
+> Published: `@pactpayment/core`, `verifier`, `receipts`, `tempo`, `mcp` at 0.1.0.
+> Next release: `npm run release:publish -- --scope=@pactpayment --version=0.1.1 --otp=<code>`
+
 "Hosting the SDK" means publishing it to the **npm registry** — the public package store that
 `npm install` downloads from. Nothing needs a server. Once published, anyone can run:
 

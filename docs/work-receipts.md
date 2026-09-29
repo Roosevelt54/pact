@@ -40,7 +40,7 @@ and follow `authorizeTx` / `txHash` to the chain.
 ## Verify — offline, no trust in the issuer's storage
 
 ```ts
-import { verifyReceipt } from '@pact/receipts'
+import { verifyReceipt } from '@pactpayment/receipts'
 
 const check = await verifyReceipt(receipt, TRUSTED_OPERATOR)
 check.valid                 // digest, id and signature all check out

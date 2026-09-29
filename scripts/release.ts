@@ -145,7 +145,8 @@ for (const pkg of ORDER) {
   writeFileSync(join(stage, 'package.json'), JSON.stringify(published, null, 2) + '\n')
   for (const f of ['README.md', 'LICENSE']) {
     const from = existsSync(join(srcDir, f)) ? join(srcDir, f) : join(ROOT, f)
-    copyFileSync(from, join(stage, f))
+    if (f === 'README.md') writeFileSync(join(stage, f), readFileSync(from, 'utf8').replaceAll('@pact/', `${scope}/`))
+    else copyFileSync(from, join(stage, f))
   }
 
   if (!publish) run(npm, ['pack', '--pack-destination', join(OUT, 'tarballs')], stage)

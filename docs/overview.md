@@ -36,7 +36,7 @@ exactly one layer: **payment authorization + work verification + correlation + r
 
 ## Three surfaces
 
-1. **The SDK** — `@pact/tempo` (agents and providers), `@pact/verifier`, `@pact/receipts`, `@pact/mcp`, `@pact/core`.
+1. **The SDK** — `@pactpayment/tempo` (agents and providers), `@pactpayment/verifier`, `@pactpayment/receipts`, `@pactpayment/mcp`, `@pactpayment/core`.
 2. **The Control Center** — live pacts, spend, verdicts, receipts, and the Chaos Lab.
 3. **PACT MCP** — paid MCP tools that only settle when the tool output verifies.
 

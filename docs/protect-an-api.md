@@ -1,14 +1,14 @@
 # Protect an API
 
 Three steps: sign your results, publish a policy, register the service. A complete runnable version is
-in `examples/basic-api` (`npm start -w @pact/example-basic-api`).
+in `examples/basic-api` (`npm start -w @pactpayment/example-basic-api`).
 
 ## 1. Sign every result with `pactProvider`
 
 ```ts
 import { Hono } from 'hono'
 import { privateKeyToAccount } from 'viem/accounts'
-import { pactProvider, ProviderError } from '@pact/tempo'
+import { pactProvider, ProviderError } from '@pactpayment/tempo'
 
 const account = privateKeyToAccount(process.env.PROVIDER_KEY as `0x${string}`)
 const provider = pactProvider({ account, gateway: 'https://pact.example.com' })

@@ -16,7 +16,7 @@ in the same transaction — with a signed Work Receipt either way.
 
 | Surface | What it is |
 |---|---|
-| **SDK** | `@pact/tempo` (`PactClient` for agents, `pactProvider` for APIs), `@pact/verifier`, `@pact/receipts`, `@pact/mcp`, `@pact/core` |
+| **SDK** | `@pactpayment/tempo` (`PactClient` for agents, `pactProvider` for APIs), `@pactpayment/verifier`, `@pactpayment/receipts`, `@pactpayment/mcp`, `@pactpayment/core` |
 | **Control Center** | `apps/dashboard` — live pacts and spend, the lifecycle of every payment, Work Receipts, and the **Chaos Lab** |
 | **PACT MCP** | paid MCP tools that only settle when the tool output verifies (`-32042` → escrow → verify → settle) |
 
@@ -30,7 +30,19 @@ res.settlement  // { captured: '0.40', refunded: '0.10', txUrl: 'https://explore
 app.post('/filings', (c) => provider.protect(async (input) => lookup(input))(c.req.raw))
 ```
 
-## Quick start
+## Install the SDK
+
+```bash
+npm install @pactpayment/tempo viem          # agents and API providers
+npm install @pactpayment/mcp                 # paid MCP tools (npx pact-mcp)
+```
+
+Published on npm: [`@pactpayment/tempo`](https://www.npmjs.com/package/@pactpayment/tempo) ·
+[`mcp`](https://www.npmjs.com/package/@pactpayment/mcp) · [`verifier`](https://www.npmjs.com/package/@pactpayment/verifier) ·
+[`receipts`](https://www.npmjs.com/package/@pactpayment/receipts) · [`core`](https://www.npmjs.com/package/@pactpayment/core).
+Inside this monorepo the same packages are workspaces named `@pact/*`.
+
+## Run the whole stack
 
 ```bash
 npm install
@@ -54,11 +66,11 @@ npm run test:live     # capture + refund through the full gateway on Moderato
 
 ```
 packages/
-  core/        @pact/core       amounts, canonical digests, state machine
-  verifier/    @pact/verifier   deterministic verification engine
-  receipts/    @pact/receipts   Work Receipt seal + offline verify
-  tempo/       @pact/tempo      PactClient · pactProvider · TIP-1034 rail · MPP wire
-  mcp/         @pact/mcp        MCP server + withPact client wrapper
+  core/        @pactpayment/core       amounts, canonical digests, state machine
+  verifier/    @pactpayment/verifier   deterministic verification engine
+  receipts/    @pactpayment/receipts   Work Receipt seal + offline verify
+  tempo/       @pactpayment/tempo      PactClient · pactProvider · TIP-1034 rail · MPP wire
+  mcp/         @pactpayment/mcp        MCP server + withPact client wrapper
 apps/
   gateway/                      hosted PACT gateway (Hono + SQLite, Postgres-portable schema)
   dashboard/                    PACT Control Center (Next.js)

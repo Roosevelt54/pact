@@ -24,7 +24,7 @@ The sidebar must say **Tempo Moderato** — every number on screen is backed by 
 - **Async job → Duplicate callback** — the provider delivers twice; PACT settles exactly once.
 - **Async job → Forged callback** — a callback signed by the wrong key is rejected without touching state.
 - **Timeout** / **Delayed result** — correct data that arrives late is still refunded.
-- `npm start -w @pact/example-mcp-agent` — an MCP agent hits `-32042`, escrows, and gets verified tool output.
+- `npm start -w @pactpayment/example-mcp-agent` — an MCP agent hits `-32042`, escrows, and gets verified tool output.
 
 ## Backup plan (no network)
 

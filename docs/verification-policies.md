@@ -5,7 +5,7 @@ verdict it produces is **the only input that decides how much of an authorizatio
 No LLM, no operator discretion.
 
 ```ts
-import type { VerificationPolicy } from '@pact/verifier'
+import type { VerificationPolicy } from '@pactpayment/verifier'
 
 export const FX_POLICY: VerificationPolicy = {
   id: 'fx-rates',
@@ -54,7 +54,7 @@ Checks that depend on a failed prerequisite are reported as `skip`, never silent
 ## Using the verifier directly
 
 ```ts
-import { verifyDelivery } from '@pact/verifier'
+import { verifyDelivery } from '@pactpayment/verifier'
 
 const result = await verifyDelivery(policy, delivery, {
   pactId, request, requestDigest, deadlineAt, providerAddress,
