@@ -73,7 +73,7 @@ export function Shell({ children }: { children: ReactNode }) {
           <Link href="/" aria-label="PACT home" className="shrink-0">
             <Wordmark size={19} />
           </Link>
-          <nav className="flex min-w-0 gap-6 overflow-x-auto text-[13.5px] max-md:hidden" aria-label="Primary">
+          <nav className="flex min-w-0 gap-6 overflow-x-auto text-[13.5px] [scrollbar-width:none] max-md:hidden [&::-webkit-scrollbar]:hidden" aria-label="Primary">
             {NAV.map((n) => (
               <Link
                 key={n.href}
@@ -94,7 +94,7 @@ export function Shell({ children }: { children: ReactNode }) {
             <WalletButton />
           </div>
         </div>
-        <nav className="flex gap-5 overflow-x-auto px-4 pb-2.5 text-[13px] md:hidden" aria-label="Primary">
+        <nav className="flex gap-5 overflow-x-auto px-4 pb-2.5 text-[13px] [scrollbar-width:none] md:hidden [&::-webkit-scrollbar]:hidden" aria-label="Primary">
           {NAV.map((n) => (
             <Link
               key={n.href}
