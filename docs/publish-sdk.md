@@ -32,7 +32,7 @@ To try them exactly as a user would, from any empty folder:
 
 ```bash
 npm init -y
-npm install C:/Users/LENOVO/pact/.release/tarballs/*.tgz viem
+npm install /path/to/pact/.release/tarballs/*.tgz viem
 ```
 
 ## 2. Create an npm account and an organization (one time)
