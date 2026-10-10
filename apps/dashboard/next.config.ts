@@ -7,7 +7,12 @@ const config: NextConfig = {
   poweredByHeader: false,
   // The /api rewrite proxies the gateway's SSE stream; gzip would buffer it in the browser.
   compress: false,
-  outputFileTracingIncludes: { '/docs/[slug]': ['../../docs/**/*.md'], '/docs': ['../../docs/**/*.md'] },
+  outputFileTracingIncludes: {
+    '/docs/[slug]': ['../../docs/**/*.md'],
+    '/docs': ['../../docs/**/*.md'],
+    '/(console)/docs/[slug]': ['../../docs/**/*.md'],
+    '/(console)/docs': ['../../docs/**/*.md'],
+  },
   async rewrites() {
     return [{ source: '/api/:path*', destination: `${api}/:path*` }]
   },

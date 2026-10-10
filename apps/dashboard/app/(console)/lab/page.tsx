@@ -4,11 +4,12 @@ import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 
 import { ChecksList, LifecycleRail, MoneyFlow, type FlowStatus } from '@/components/pact'
+import { ThermalReceipt } from '@/components/Receipt'
 import { ErrorBox, Hash, Panel, StatePill, Tag } from '@/components/ui'
 import { api, ApiError, useApi, useOnEvent } from '@/lib/api'
 import { clock } from '@/lib/format'
 import { deriveLifecycle, outcomeOf } from '@/lib/lifecycle'
-import type { PactDetail, Scenario, Service } from '@/lib/types'
+import type { PactDetail, ReceiptBody, Scenario, Service } from '@/lib/types'
 
 type Mode = 'sync' | 'async'
 type Run = { pactId: string; scenario: string; serviceId: string; at: string }
@@ -38,48 +39,57 @@ function Banner({ pact }: { pact: PactDetail }) {
   const outcome = outcomeOf(pact.timeline)
   if (outcome === 'settled')
     return (
-      <div className="anim-in rounded-xl border border-settle/40 bg-settle/10 px-5 py-4">
-        <div className="font-mono text-[11px] uppercase tracking-[0.16em] text-settle">
-          Payment authorized → work verified → receipt → settlement
+      <div className="anim-in border-t-2 border-ink pt-4">
+        <div className="font-mono text-[11px] uppercase tracking-[0.1em] text-muted">authorized → verified → receipt → settled</div>
+        <div className="mt-2 font-serif text-[52px] leading-[0.92] max-sm:text-[38px]">
+          Verified. <span className="text-settle">${pact.captured}</span> to the provider.
         </div>
-        <div className="mt-1 font-serif text-[30px] leading-tight text-settle">Verified. ${pact.captured} settled to the provider.</div>
-        <div className="mt-1 text-[13px] text-muted">
+        <div className="mt-2 max-w-2xl text-[14px] text-muted">
           The unused ${pact.refunded} of the authorization went back to the agent in the same settlement transaction.
         </div>
       </div>
     )
   if (outcome === 'protected')
     return (
-      <div className="anim-in rounded-xl border border-protect/40 bg-protect/10 px-5 py-4">
-        <div className="font-mono text-[11px] uppercase tracking-[0.16em] text-fail">Payment authorized → work verification failed</div>
-        <div className="mt-1 font-serif text-[30px] leading-tight text-protect">Settlement protected. Nothing released.</div>
-        <div className="mt-1 text-[13px] text-muted">
+      <div className="anim-in border-t-2 border-fail pt-4">
+        <div className="font-mono text-[11px] uppercase tracking-[0.1em] text-fail">authorized → verification failed → refunded</div>
+        <div className="mt-2 font-serif text-[52px] leading-[0.92] max-sm:text-[38px]">
+          Nothing released. <span className="text-protect">${pact.refunded}</span> back to the agent.
+        </div>
+        <div className="mt-2 max-w-2xl text-[14px] text-muted">
           {pact.verification?.reasons.length ? `Failed: ${pact.verification.reasons.join(', ')}. ` : 'No valid result arrived before the deadline. '}
-          The full ${pact.refunded} authorization was refunded to the agent.
+          The provider received nothing; the full authorization was refunded on-chain.
         </div>
       </div>
     )
   if (outcome === 'failed_payment')
     return (
-      <div className="rounded-xl border border-fail/40 bg-fail/10 px-5 py-4">
-        <div className="font-mono text-[11px] uppercase tracking-[0.16em] text-fail">Payment not authorized</div>
-        <div className="mt-1 text-[14px]">The agent could not escrow funds, so no work was dispatched.</div>
+      <div className="border-t-2 border-fail pt-4">
+        <div className="font-mono text-[11px] uppercase tracking-[0.1em] text-fail">payment not authorized</div>
+        <div className="mt-2 text-[15px]">The agent could not escrow funds, so no work was dispatched.</div>
       </div>
     )
   const phase = pact.authorization
     ? pact.work?.deliveredAt
-      ? 'Verifying the delivered work…'
-      : 'Payment authorized. Provider is working…'
+      ? 'Checking the delivered work…'
+      : 'Escrowed. Provider is working…'
     : 'Escrowing the budget on Tempo…'
   return (
-    <div className="rounded-xl border border-escrow/40 bg-escrow/5 px-5 py-4">
-      <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.16em] text-escrow">
-        <span className="anim-ring h-1.5 w-1.5 rounded-full bg-escrow text-escrow" /> in flight
+    <div className="border-t-2 border-escrow pt-4">
+      <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.1em] text-escrow">
+        <span className="anim-ring h-[7px] w-[7px] bg-escrow text-escrow" /> money held · in flight
       </div>
-      <div className="mt-1 font-serif text-[28px] leading-tight">{phase}</div>
-      <div className="mt-1 text-[13px] text-muted">Funds are locked in escrow and cannot reach the provider until verification passes.</div>
+      <div className="mt-2 font-serif text-[52px] leading-[0.92] max-sm:text-[38px]">{phase}</div>
+      <div className="mt-2 text-[14px] text-muted">Funds are locked in escrow and cannot reach the provider until verification passes.</div>
     </div>
   )
+}
+
+/** Prints the signed Work Receipt once the gateway has issued it — the moment the money is decided. */
+function VerdictReceipt({ receiptId, txHref }: { receiptId: string; txHref: string | null }) {
+  const { data } = useApi<{ receipt: ReceiptBody }>(`/v1/receipts/${receiptId}`)
+  if (!data) return <div className="h-[420px] animate-pulse bg-surface-2" />
+  return <ThermalReceipt r={data.receipt} txHref={txHref} className="mx-auto w-full max-w-[380px]" />
 }
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
@@ -104,8 +114,17 @@ function Stage({ pactId, onRetry, retrying }: { pactId: string; onRetry: (pact: 
   const canRetry = pact.state === 'PROTECTED' && pact.service.id === 'sec-filings' && pact.retries.length === 0
 
   return (
-    <div className="flex flex-col gap-5">
-      <Banner pact={pact} />
+    <div className="flex flex-col gap-8">
+      <div className="grid grid-cols-1 items-start gap-8 xl:grid-cols-[minmax(0,1fr)_340px]">
+        <Banner pact={pact} />
+        {pact.receiptId ? (
+          <VerdictReceipt key={pact.receiptId} receiptId={pact.receiptId} txHref={pact.settlement?.txUrl ?? null} />
+        ) : (
+          <div className="flex h-full min-h-[120px] items-center justify-center border border-dashed border-line-strong p-6 text-center font-mono text-[11px] uppercase tracking-[0.1em] text-faint max-xl:hidden">
+            the work receipt prints at settlement
+          </div>
+        )}
+      </div>
 
       <Panel
         kicker={`${pact.service.name} · ${pact.service.provider} · policy ${pact.policy.id}@${pact.policy.version}`}
@@ -268,10 +287,14 @@ export default function ChaosLab() {
 
   return (
     <div>
-      <div className="mb-6">
-        <div className="font-mono text-[11px] uppercase tracking-[0.18em] text-fail">PACT Chaos Lab</div>
-        <h1 className="mt-1 font-serif text-[44px] leading-[1.04] tracking-tight max-sm:text-[32px]">Break the provider. Watch the money.</h1>
-        <p className="mt-2 max-w-2xl text-[14px] text-muted">
+      <div className="mb-10">
+        <div className="font-mono text-[11px] uppercase tracking-[0.12em] text-muted">Chaos Lab · real payments on Tempo</div>
+        <h1 className="mt-2 font-serif text-[72px] leading-[0.9] max-sm:text-[46px]">
+          Break the provider.
+          <br />
+          <span className="text-escrow">Watch the money.</span>
+        </h1>
+        <p className="mt-4 max-w-2xl text-[15px] text-muted">
           A real agent pays a real provider through PACT. Pick how the provider misbehaves, run it, and watch the escrow either settle to the
           provider or come back to the agent.
         </p>
@@ -372,9 +395,10 @@ export default function ChaosLab() {
             <button
               onClick={() => void run()}
               disabled={submitting || !service || (mode === 'sync' ? !company.trim() : !market.trim())}
-              className="mt-5 w-full rounded-lg bg-ink px-4 py-3 text-[14px] font-semibold text-bg transition hover:opacity-90 disabled:opacity-50"
+              className="mt-5 flex w-full items-center justify-between bg-escrow px-4 py-3.5 text-[14px] font-bold text-[#0c0c0b] transition hover:brightness-110 disabled:opacity-50"
             >
-              {submitting ? 'Starting…' : '3 · Run paid request'}
+              <span>{submitting ? 'Escrowing…' : '3 · Run paid request'}</span>
+              <span className="font-mono text-[12px]">{service ? `price $${service.price}` : ''} →</span>
             </button>
             {runError && <div className="mt-3 text-[12.5px] text-fail">{runError}</div>}
           </Panel>

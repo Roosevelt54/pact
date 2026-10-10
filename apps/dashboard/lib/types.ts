@@ -152,6 +152,43 @@ export type WorkReceipt = Record<string, unknown> & {
   issuedAt: string
 }
 
+/** The signed Work Receipt body as served by GET /v1/receipts/:id. */
+export type ReceiptBody = {
+  version: string
+  receiptId: string
+  receiptDigest: string
+  pactSignature: string
+  pactId: string
+  issuedAt: string
+  agent: { id: string; address: string }
+  service: { id: string; name: string; endpoint: string }
+  provider: { name: string; address: string }
+  request: { digest: string }
+  payment: {
+    rail: 'tempo' | 'local'
+    chainId: number | null
+    token: string
+    escrow: string | null
+    operator: string
+    challengeId: string | null
+    channelId: string | null
+    channelSalt: string | null
+    authorizeTx: string | null
+    authorizedAmount: string
+    price: string
+  }
+  result: { digest: string | null; itemCount: number | null; latencyMs: number | null }
+  verification: {
+    policyId: string
+    policyVersion: number
+    policyDigest: string
+    verdict: string
+    reasons: string[]
+    checks: { code: string; status: string; detail: string }[]
+  }
+  settlement: { outcome: string; captureAmount: string; refundAmount: string; txHash: string | null }
+}
+
 export type ReceiptVerification = {
   valid: boolean
   checks: { digestMatches: boolean; idMatches: boolean; signatureValid: boolean; storedMatches: boolean }

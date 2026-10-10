@@ -22,7 +22,7 @@ function Node({ step }: { step: Step }) {
   return (
     <span
       key={step.status}
-      className={`relative z-10 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 font-mono text-[12px] font-bold ${
+      className={`relative z-10 inline-flex h-7 w-7 shrink-0 items-center justify-center border-2 font-mono text-[12px] font-bold ${
         filled
           ? `${TONE_BG[tone]} anim-pop border-transparent text-bg`
           : step.status === 'active'
@@ -92,7 +92,7 @@ export function MoneyFlow({
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <div>
           <div className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-faint">Authorized</div>
-          <div className="num font-serif text-[34px] leading-none">${authorized ?? '0.00'}</div>
+          <div className="num font-serif text-[44px] leading-none">${authorized ?? '0.00'}</div>
         </div>
         <div className="text-right font-mono text-[11.5px] text-muted">
           price ${price}
@@ -103,7 +103,7 @@ export function MoneyFlow({
           {status === 'protected' && <span className="text-protect">protected · refunded</span>}
         </div>
       </div>
-      <div className="mt-3 flex h-3 w-full overflow-hidden rounded-full bg-surface-2 ring-1 ring-line">
+      <div className="mt-3 flex h-4 w-full overflow-hidden bg-surface-2">
         {status === 'escrowed' && <div className="hatch h-full w-full" />}
         {status === 'settled' && (
           <>
@@ -114,9 +114,9 @@ export function MoneyFlow({
         {status === 'protected' && <div className="anim-fill h-full w-full bg-protect" />}
       </div>
       <div className="mt-2 flex flex-wrap justify-between gap-2 font-mono text-[11.5px]">
-        <span className={status === 'settled' ? 'text-settle' : 'text-faint'}>● captured by provider {captured ? `$${captured}` : '—'}</span>
+        <span className={status === 'settled' ? 'text-settle' : 'text-faint'}>■ captured by provider {captured ? `$${captured}` : '—'}</span>
         <span className={status === 'settled' || status === 'protected' ? 'text-protect' : 'text-faint'}>
-          ● refunded to agent {refunded ? `$${refunded}` : '—'}
+          ■ refunded to agent {refunded ? `$${refunded}` : '—'}
         </span>
       </div>
     </div>
