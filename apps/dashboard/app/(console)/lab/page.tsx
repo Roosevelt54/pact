@@ -9,7 +9,17 @@ import { ErrorBox, Hash, Panel, StatePill, Tag } from '@/components/ui'
 import { api, ApiError, useApi, useOnEvent } from '@/lib/api'
 import { clock } from '@/lib/format'
 import { deriveLifecycle, outcomeOf } from '@/lib/lifecycle'
+import { walletError, type PayStep } from '@/lib/tempo'
 import type { PactDetail, ReceiptBody, Scenario, Service } from '@/lib/types'
+import { useWallet } from '@/lib/wallet'
+
+type Payer = 'demo' | 'wallet'
+const PAY_STEPS: { key: PayStep; label: string }[] = [
+  { key: 'escrow', label: 'Approve the escrow deposit in your wallet' },
+  { key: 'confirming', label: 'Tempo confirms the escrow' },
+  { key: 'voucher', label: 'Sign the voucher for the price' },
+  { key: 'submitted', label: 'PACT checks the work and settles' },
+]
 
 type Mode = 'sync' | 'async'
 type Run = { pactId: string; scenario: string; serviceId: string; at: string }
@@ -233,11 +243,15 @@ export default function ChaosLab() {
   const [current, setCurrent] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [runError, setRunError] = useState<string | null>(null)
+  const [payer, setPayer] = useState<Payer>('demo')
+  const [payStep, setPayStep] = useState<PayStep | null>(null)
+  const wallet = useWallet()
 
   useEffect(() => {
     const h = loadHistory()
     setRuns(h)
     if (h[0]) setCurrent(h[0].pactId)
+    if (new URLSearchParams(window.location.search).get('pay') === 'wallet') setPayer('wallet')
   }, [])
 
   const remember = (run: Run) => {
@@ -274,7 +288,34 @@ export default function ChaosLab() {
     }
   }
 
-  const run = () => launch(mode === 'sync' ? { scenario, serviceId, company, count } : { scenario, serviceId, market, sections })
+  /** The visitor's wallet pays: the gateway creates and arms the pact, the wallet escrows and signs. */
+  const launchWithWallet = async (body: Record<string, unknown>) => {
+    setSubmitting(true)
+    setRunError(null)
+    setPayStep(null)
+    try {
+      const client = await wallet.client((s) => setPayStep(s))
+      const res = await api<{ pactId: string; maxAmount: string }>('/v1/lab/runs', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'idempotency-key': crypto.randomUUID() },
+        body: JSON.stringify({ ...body, agentId: wallet.agentId }),
+      })
+      remember({ pactId: res.pactId, scenario: `${String(body.scenario)} · my wallet`, serviceId: String(body.serviceId), at: new Date().toISOString() })
+      await client.authorize(res.pactId, res.maxAmount)
+      wallet.markDone('pay')
+      setTimeout(() => void wallet.refreshBalance(), 6000)
+    } catch (e) {
+      setRunError(walletError(e))
+    } finally {
+      setSubmitting(false)
+      setPayStep(null)
+    }
+  }
+
+  const run = () => {
+    const body = mode === 'sync' ? { scenario, serviceId, company, count } : { scenario, serviceId, market, sections }
+    return payer === 'wallet' ? launchWithWallet(body) : launch(body)
+  }
 
   const retry = (pact: PactDetail) =>
     launch({
@@ -392,14 +433,60 @@ export default function ChaosLab() {
               ))}
             </div>
 
-            <button
-              onClick={() => void run()}
-              disabled={submitting || !service || (mode === 'sync' ? !company.trim() : !market.trim())}
-              className="mt-5 flex w-full items-center justify-between bg-escrow px-4 py-3.5 text-[14px] font-bold text-[#0c0c0b] transition hover:brightness-110 disabled:opacity-50"
-            >
-              <span>{submitting ? 'Escrowing…' : '3 · Run paid request'}</span>
-              <span className="font-mono text-[12px]">{service ? `price $${service.price}` : ''} →</span>
-            </button>
+            <div className="mt-5 font-mono text-[10.5px] uppercase tracking-[0.14em] text-faint">3 · who pays</div>
+            <div className="mt-2 grid grid-cols-2 gap-1 bg-surface-2 p-1 text-[12.5px]" role="tablist">
+              {(['demo', 'wallet'] as const).map((p) => (
+                <button
+                  key={p}
+                  role="tab"
+                  aria-selected={payer === p}
+                  onClick={() => setPayer(p)}
+                  className={`px-2 py-1.5 font-medium transition ${payer === p ? 'bg-surface ring-1 ring-line' : 'text-muted'}`}
+                >
+                  {p === 'demo' ? 'Demo agent' : 'My wallet'}
+                </button>
+              ))}
+            </div>
+            <div className="mt-2 text-[12px] text-muted">
+              {payer === 'demo'
+                ? 'ResearchBot, a test agent run by this gateway, pays. No wallet needed.'
+                : wallet.address
+                  ? `Your wallet pays: ${wallet.balance ?? '…'} pathUSD available. You approve two prompts.`
+                  : 'Connect a wallet to escrow your own test funds and watch the refund land back with you.'}
+            </div>
+
+            {payer === 'wallet' && wallet.status !== 'connected' ? (
+              <button
+                onClick={() => void wallet.connect()}
+                className="mt-4 flex w-full items-center justify-between bg-ink px-4 py-3.5 text-[14px] font-bold text-bg transition hover:bg-escrow hover:text-[#0c0c0b]"
+              >
+                <span>{wallet.status === 'unavailable' ? 'Install a browser wallet first' : 'Connect wallet to pay'}</span>
+                <span>→</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => void run()}
+                disabled={submitting || !service || (mode === 'sync' ? !company.trim() : !market.trim())}
+                className="mt-4 flex w-full items-center justify-between bg-escrow px-4 py-3.5 text-[14px] font-bold text-[#0c0c0b] transition hover:brightness-110 disabled:opacity-50"
+              >
+                <span>{submitting ? (payer === 'wallet' ? 'Waiting for your wallet…' : 'Escrowing…') : payer === 'wallet' ? 'Pay from my wallet' : 'Run paid request'}</span>
+                <span className="font-mono text-[12px]">{service ? `price $${service.price}` : ''} →</span>
+              </button>
+            )}
+            {payer === 'wallet' && submitting && (
+              <ol className="mt-3 space-y-1.5 font-mono text-[11.5px]">
+                {PAY_STEPS.map((s, i) => {
+                  const at = payStep ? PAY_STEPS.findIndex((x) => x.key === payStep) : -1
+                  const state = i < at ? 'done' : i === at ? 'now' : 'todo'
+                  return (
+                    <li key={s.key} className={`flex gap-2 ${state === 'now' ? 'text-escrow' : state === 'done' ? 'text-ink' : 'text-faint'}`}>
+                      <span>{state === 'done' ? '■' : state === 'now' ? '▸' : '·'}</span>
+                      {s.label}
+                    </li>
+                  )
+                })}
+              </ol>
+            )}
             {runError && <div className="mt-3 text-[12.5px] text-fail">{runError}</div>}
           </Panel>
 

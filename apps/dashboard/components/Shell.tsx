@@ -4,7 +4,9 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState, type ReactNode } from 'react'
 
+import { GettingStarted } from '@/components/GettingStarted'
 import { Wordmark } from '@/components/Logo'
+import { WalletButton } from '@/components/WalletButton'
 import { useApi, useEvents } from '@/lib/api'
 import { short } from '@/lib/format'
 import type { RailInfo } from '@/lib/types'
@@ -15,6 +17,7 @@ const NAV = [
   { href: '/pacts', label: 'Pacts' },
   { href: '/receipts', label: 'Work Receipts' },
   { href: '/docs', label: 'Developers' },
+  { href: '/account', label: 'Account' },
 ]
 
 function ThemeToggle() {
@@ -84,10 +87,11 @@ export function Shell({ children }: { children: ReactNode }) {
             ))}
           </nav>
           <div className="ml-auto flex items-center gap-4">
-            <span className="max-sm:hidden">
+            <span className="max-2xl:hidden">
               <RailStatus />
             </span>
             <ThemeToggle />
+            <WalletButton />
           </div>
         </div>
         <nav className="flex gap-5 overflow-x-auto px-4 pb-2.5 text-[13px] md:hidden" aria-label="Primary">
@@ -106,6 +110,8 @@ export function Shell({ children }: { children: ReactNode }) {
       <main className="w-full min-w-0 flex-1 px-4 py-8 sm:px-6 md:px-10 md:py-12">
         <div className="mx-auto max-w-[1360px]">{children}</div>
       </main>
+
+      <GettingStarted />
 
       <footer className="border-t border-line">
         <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-3 px-4 py-5 font-mono text-[11px] text-faint sm:px-6 md:px-10">

@@ -66,6 +66,8 @@ export interface SettlementRail {
   findClose(p: { channelId: Hex; openTxHash: string | null }): Promise<CloseResult | null>
   txUrl(hash: string | null): string | null
   balanceOf(address: Address): Promise<bigint>
+  /** Testnet only: top up an address with play money so anyone can try PACT from a fresh wallet. */
+  fund?(address: Address): Promise<{ txHashes: string[] }>
 }
 
 /** Payer side of the rail (the agent's wallet). Never runs on behalf of a provider. */

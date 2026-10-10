@@ -255,10 +255,14 @@ export class Repo {
   getPactByIdempotency(agentId: string, key: string) {
     return one<PactRow>(this.db, 'SELECT * FROM pacts WHERE agent_id = ? AND idempotency_key = ?', agentId, key)
   }
-  listPacts(opts: { limit?: number; before?: number; state?: string } = {}) {
+  listPacts(opts: { limit?: number; before?: number; state?: string; agentId?: string } = {}) {
     const limit = Math.min(Math.max(opts.limit ?? 50, 1), 200)
     const where: string[] = []
     const params: unknown[] = []
+    if (opts.agentId) {
+      where.push('agent_id = ?')
+      params.push(opts.agentId)
+    }
     if (opts.before) {
       where.push('created_at < ?')
       params.push(opts.before)

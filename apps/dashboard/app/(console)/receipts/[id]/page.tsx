@@ -2,11 +2,13 @@
 
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
+import { useEffect } from 'react'
 
 import { ThermalReceipt } from '@/components/Receipt'
 import { ErrorBox, Hash, Panel, Skeleton, Tag } from '@/components/ui'
 import { useApi } from '@/lib/api'
 import type { RailInfo, ReceiptBody, ReceiptVerification } from '@/lib/types'
+import { useWallet } from '@/lib/wallet'
 
 function Check({ ok, children }: { ok: boolean; children: string }) {
   return (
@@ -22,6 +24,10 @@ export default function ReceiptPage() {
   const receipt = useApi<{ receipt: ReceiptBody; signer: string }>(`/v1/receipts/${id}`)
   const verify = useApi<ReceiptVerification>(`/v1/receipts/${id}/verify`)
   const rail = useApi<RailInfo>('/v1/rail')
+  const { markDone } = useWallet()
+  useEffect(() => {
+    if (receipt.data) markDone('receipt')
+  }, [receipt.data, markDone])
 
   if (receipt.error && !receipt.data)
     return (

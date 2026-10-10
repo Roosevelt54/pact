@@ -9,7 +9,7 @@
  * callbacks, concurrent retries, browser refreshes and process restarts can
  * never apply a transition twice or settle twice.
  */
-import { isAddressEqual, verifyMessage, type Account, type Address, type Hex } from 'viem'
+import { getAddress, isAddressEqual, verifyMessage, type Account, type Address, type Hex } from 'viem'
 
 import { digest } from '@pact/core'
 import { formatAmount, parseAmount } from '@pact/core'
@@ -63,6 +63,16 @@ export type CreatePactInput = {
   retryOf?: string | undefined
   scenario?: string | undefined
   origin?: string | undefined
+}
+
+/**
+ * Wallet agents need no account: the id names the wallet (`agt_0x…`). Registration is safe without proof of
+ * ownership because authorization only accepts an escrow whose payer is that exact wallet.
+ */
+const WALLET_AGENT = /^agt_(0x[0-9a-f]{40})$/
+export const walletAgentAddress = (agentId: string): Address | null => {
+  const m = WALLET_AGENT.exec(agentId)
+  return m ? getAddress(m[1]!) : null
 }
 
 const MAX_REQUEST_BYTES = 8 * 1024
@@ -130,11 +140,23 @@ export class PactEngine {
     return pact
   }
 
+  private registerWalletAgent(agentId: string) {
+    const address = walletAgentAddress(agentId)
+    if (!address) return undefined
+    this.d.repo.upsertAgent({
+      id: agentId,
+      name: `Wallet ${address.slice(0, 6)}…${address.slice(-4)}`,
+      address,
+      budget: parseAmount('100').toString(),
+    })
+    return this.d.repo.getAgent(agentId)
+  }
+
   // ───────────────────────────── create ─────────────────────────────
 
   createPact(input: CreatePactInput): { pact: PactRow; created: boolean } {
     const { repo, bus } = this.d
-    const agent = repo.getAgent(input.agentId)
+    const agent = repo.getAgent(input.agentId) ?? this.registerWalletAgent(input.agentId)
     if (!agent) throw new PactError('unknown_agent', 'agent not registered', 404)
     const service = repo.getService(input.serviceId)
     if (!service) throw new PactError('unknown_service', 'service not found', 404)

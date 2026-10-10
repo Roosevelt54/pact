@@ -4,7 +4,7 @@ import { bodyLimit } from 'hono/body-limit'
 import { cors } from 'hono/cors'
 import { secureHeaders } from 'hono/secure-headers'
 import { streamSSE } from 'hono/streaming'
-import type { Account } from 'viem'
+import type { Account, Address } from 'viem'
 import { z } from 'zod'
 
 import { formatAmount, parseAmount } from '@pact/core'
@@ -24,7 +24,7 @@ import { CHECK_LABELS, type Check, type VerificationPolicy } from '@pact/verifie
 import { SCENARIOS, SCENARIO_IDS } from '../catalog.js'
 import type { Config } from '../config.js'
 import type { PactRow, Repo } from '../db/repo.js'
-import { PactError, type PactEngine } from '../engine/pactEngine.js'
+import { PactError, walletAgentAddress, type PactEngine } from '../engine/pactEngine.js'
 import { toEvent, type EventBus, type PactEvent } from '../events.js'
 
 export type AppDeps = {
@@ -81,6 +81,11 @@ const labRunSchema = z.object({
   market: z.string().trim().min(1).max(80).default('Stablecoin payments in West Africa'),
   sections: z.number().int().min(1).max(12).default(5),
   retryOf: z.string().max(64).optional(),
+  /** Pay with a visitor's own wallet instead of the demo agent. Only wallet agents qualify. */
+  agentId: z
+    .string()
+    .regex(/^agt_0x[0-9a-f]{40}$/)
+    .optional(),
 })
 
 const fieldType = z.enum(['string', 'number', 'boolean', 'url', 'date', 'array', 'object'])
@@ -127,6 +132,8 @@ export function createApp(d: AppDeps) {
   const app = new Hono()
   const labLimiter = new RateLimiter(30, 60_000)
   const writeLimiter = new RateLimiter(120, 60_000)
+  const faucetByAddress = new RateLimiter(1, 15 * 60_000)
+  const faucetByClient = new RateLimiter(6, 15 * 60_000)
   let labInFlight = 0
 
   app.use('*', secureHeaders())
@@ -161,6 +168,7 @@ export function createApp(d: AppDeps) {
     const confirmed = settlement?.status === 'confirmed'
     return {
       id: p.id,
+      agentId: p.agent_id,
       state: p.state,
       outcome: p.outcome,
       scenario: p.scenario,
@@ -371,8 +379,44 @@ export function createApp(d: AppDeps) {
       limit: Number.isFinite(limit) ? limit : 50,
       before: Number.isFinite(before) ? before : undefined,
       state: c.req.query('state') || undefined,
+      agentId: c.req.query('agent')?.slice(0, 64) || undefined,
     })
     return c.json({ pacts: rows.map(summary) })
+  })
+
+  /** Testnet faucet so a fresh wallet can try PACT. One claim per address and a few per client per window. */
+  app.post('/v1/faucet', bodyLimit({ maxSize: 1024 }), async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { address?: unknown }
+    const address = typeof body.address === 'string' && /^0x[0-9a-fA-F]{40}$/.test(body.address) ? (body.address as Address) : null
+    if (!address) return c.json({ error: { code: 'invalid_address', message: 'address must be a 0x-prefixed 20-byte address' } }, 400)
+    if (!rail.fund) return c.json({ error: { code: 'faucet_unavailable', message: 'this rail has no faucet' } }, 404)
+    if (!faucetByClient.allow(clientKey(c)) || !faucetByAddress.allow(address.toLowerCase()))
+      return c.json({ error: { code: 'rate_limited', message: 'test funds were sent recently; try again later' } }, 429)
+    try {
+      const { txHashes } = await rail.fund(address)
+      return c.json({ funded: true, address, txUrls: txHashes.map((h) => rail.txUrl(h)) })
+    } catch (error) {
+      return c.json({ error: { code: 'faucet_failed', message: (error as Error).message.split('\n')[0] } }, 502)
+    }
+  })
+
+  /** An agent and its live balance. Wallet agents (`agt_0x…`) resolve before their first pact. */
+  app.get('/v1/agents/:id', async (c) => {
+    const id = c.req.param('id').slice(0, 64)
+    const row = repo.getAgent(id)
+    const address = row?.address ?? walletAgentAddress(id)
+    if (!address) return c.json({ error: { code: 'not_found', message: 'agent not found' } }, 404)
+    const balance = await rail.balanceOf(address as Address).catch(() => null)
+    return c.json({
+      agent: {
+        id,
+        name: row?.name ?? null,
+        address,
+        registered: Boolean(row),
+        balance: balance == null ? null : formatAmount(balance),
+        tokenSymbol: rail.info.tokenSymbol,
+      },
+    })
   })
 
   app.get('/v1/pacts/:id', (c) => {
@@ -555,6 +599,21 @@ export function createApp(d: AppDeps) {
     const price = BigInt(service.price)
     const maxAmount = formatAmount(price + (price * 25n) / 100n)
     const idempotencyKey = c.req.header('idempotency-key')?.slice(0, 128) || randomUUID()
+    if (body.agentId) {
+      // The visitor's wallet pays: arm the provider and hand back the pact; authorization happens in their browser.
+      const { pact } = engine.createPact({
+        agentId: body.agentId,
+        serviceId: service.id,
+        request,
+        maxAmount,
+        idempotencyKey,
+        retryOf: body.retryOf,
+        scenario: body.scenario,
+        origin: 'wallet',
+      })
+      if (pact.state === 'CREATED') d.provider.arm(pact.id, body.scenario as Behavior)
+      return c.json({ pactId: pact.id, state: pact.state, maxAmount }, 202)
+    }
     const pact = await d.agent.create({
       service: service.id,
       input: request,

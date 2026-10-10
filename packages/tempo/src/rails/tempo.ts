@@ -7,6 +7,7 @@ import {
   computeChannelId,
   createTempoContext,
   ESCROW,
+  fundFromFaucet,
   openChannel,
   pactSalt,
   readChannel,
@@ -117,6 +118,10 @@ export class TempoRail implements SettlementRail {
 
   balanceOf(address: Address) {
     return tokenBalance(this.ctx, address)
+  }
+
+  async fund(address: Address) {
+    return { txHashes: [...(await fundFromFaucet(this.ctx, address))] }
   }
 }
 

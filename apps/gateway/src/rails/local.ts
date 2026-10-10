@@ -125,6 +125,11 @@ export class LocalRail implements SettlementRail {
   async balanceOf(address: Address) {
     return balance(this.repo, address)
   }
+
+  async fund(address: Address) {
+    credit(this.repo, address, 100_000_000n)
+    return { txHashes: [] }
+  }
 }
 
 export class LocalPayer implements PayerWallet {
