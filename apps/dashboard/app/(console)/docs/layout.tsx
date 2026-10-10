@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 
 import { DOCS } from '@/lib/docs'
 
-const GROUPS = ['Start', 'Concepts', 'Guides', 'Reference'] as const
+const GROUPS = ['Start here', 'Use PACT in your code', 'Concepts', 'Reference', 'Self-hosting'] as const
 
 export default function DocsLayout({ children }: { children: ReactNode }) {
   return (
